@@ -1,69 +1,185 @@
-import Image from "next/image";
+"use client";
+
+import { Check, Copy, LockKeyhole, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toFullWidth, toHalfWidth } from "@/lib/width";
+
+const example =
+  "日本語のテキスト\nｶﾞｯﾂﾎﾟｰｽﾞ・カタカナ・ひらがな\nＡＢＣ 123 / Tokyo ２０２６";
+
+function characterCount(text: string) {
+  return Array.from(text).length.toLocaleString();
+}
+
+function Output({
+  id,
+  title,
+  japanese,
+  value,
+}: {
+  id: string;
+  title: string;
+  japanese: string;
+  value: string;
+}) {
+  const field = useRef<HTMLTextAreaElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [notice, setNotice] = useState<{
+    value: string;
+    copied: boolean;
+  } | null>(null);
+  const copied = notice?.value === value && notice.copied;
+  const failed = notice?.value === value && !notice.copied;
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setNotice({ value, copied: true });
+    } catch {
+      field.current?.focus();
+      field.current?.select();
+      setNotice({ value, copied: false });
+    }
+
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setNotice(null), 2500);
+  }
+
+  return (
+    <section className="output" aria-labelledby={`${id}-label`}>
+      <div className="output-heading">
+        <h2 id={`${id}-label`}>
+          {title} <span lang="ja">{japanese}</span>
+        </h2>
+        <button
+          className={`copy-button${copied ? " copied" : ""}`}
+          onClick={copy}
+          disabled={!value}
+          aria-label={`Copy ${title.toLowerCase()} text`}
+          title={`Copy ${title.toLowerCase()} text`}
+        >
+          {copied ? <Check size={15} /> : <Copy size={15} />}
+          <span>{copied ? "Copied" : "Copy"}</span>
+        </button>
+      </div>
+      <div className="output-field">
+        <textarea
+          ref={field}
+          id={id}
+          aria-labelledby={`${id}-label`}
+          value={value}
+          placeholder={japanese === "全角" ? "ア Ａ １" : "ｱ A 1"}
+          readOnly
+          spellCheck={false}
+        />
+        <div className="field-footer">
+          <span className="copy-notice" role="status">
+            {failed
+              ? "Copy unavailable. Text selected for manual copy."
+              : copied
+                ? "Copied to clipboard"
+                : ""}
+          </span>
+          <span>{characterCount(value)} characters</span>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
+  const [text, setText] = useState("");
+  const input = useRef<HTMLTextAreaElement>(null);
+
+  function replaceText(value: string) {
+    setText(value);
+    input.current?.focus();
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="converter">
+      <header className="page-heading">
+        <div className="wordmark" lang="ja" aria-hidden="true">
+          <span>ア</span>
+          <span>ｱ</span>
+        </div>
+        <div>
+          <p className="japanese-title" lang="ja">
+            文字幅
           </p>
+          <h1>Japanese width converter</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <section className="input-section" aria-labelledby="input-label">
+        <div className="input-heading">
+          <label id="input-label" htmlFor="input">
+            Your text <span lang="ja">入力</span>
+          </label>
+          <div className="input-actions">
+            <button
+              className="example-button"
+              onClick={() => replaceText(example)}
+            >
+              Example
+            </button>
+            <span className="action-divider" aria-hidden="true" />
+            <button
+              className="clear-button"
+              onClick={() => replaceText("")}
+              disabled={!text}
+              title="Clear text"
+            >
+              <X size={15} /> Clear
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+        <div className="input-field">
+          <textarea
+            ref={input}
+            id="input"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="日本語、ｶﾀｶﾅ、ABC 123…"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
+          />
+          <div className="field-footer">
+            <span>{characterCount(text)} characters</span>
+          </div>
+        </div>
+      </section>
+
+      <div className="outputs">
+        <Output
+          id="full-width"
+          title="Full-width"
+          japanese="全角"
+          value={toFullWidth(text)}
+        />
+        <Output
+          id="half-width"
+          title="Half-width"
+          japanese="半角"
+          value={toHalfWidth(text)}
+        />
+      </div>
+
+      <footer className="page-footer">
+        <p>
+          <LockKeyhole size={12} aria-hidden="true" /> Text stays in your
+          browser.
+        </p>
+        <span lang="ja">全角 / 半角</span>
+      </footer>
+    </main>
   );
 }

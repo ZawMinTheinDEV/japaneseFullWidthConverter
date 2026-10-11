@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "routes.d.ts",
+    "validator.ts",
+    "cache-life.d.ts",
+    "root-params.d.ts",
   ]),
 ]);
 

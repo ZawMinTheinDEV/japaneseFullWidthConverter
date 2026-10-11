@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Japanese width converter
 
-## Getting Started
+A small browser-only tool for full-width and half-width Japanese text. Both outputs update as you type, with a copy button for each. Text is held in memory in the current tab; it is never sent to a server or saved to storage.
 
-First, run the development server:
+Converts katakana, Japanese punctuation, ASCII letters, numbers, punctuation, and ordinary spaces. Kanji, hiragana, emoji, line breaks, and tabs are preserved. Characters without a half-width equivalent remain unchanged. Conversion uses [moji](https://github.com/niwaringo/moji), with narrowly scoped Unicode normalization for voiced kana.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+## Development
+
+Node.js 24 and pnpm 10 are used by the deployment workflow.
+
+```sh
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```sh
+pnpm test
+pnpm lint
+pnpm build
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The build writes static HTML, CSS, and JavaScript to `out/`. No Node.js server is needed to host it. The UI uses system fonts and bundled dependencies, with no external runtime requests.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## GitHub Pages
 
-## Learn More
+1. In the repository's **Settings > Pages**, set **Source** to **GitHub Actions**.
+2. Push to `main`, or run **Deploy to GitHub Pages** from the Actions tab.
+3. The workflow tests, builds, and publishes `out/`. It gets the base path from GitHub, so repository URLs and custom domains use the right asset paths.
 
-To learn more about Next.js, take a look at the following resources:
+For this repository, the default Pages URL is `https://zawmintheindev.github.io/japaneseFullWidthConverter/`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To build manually for that subdirectory:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sh
+PAGES_BASE_PATH=/japaneseFullWidthConverter pnpm build
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For a custom domain or a root-level site, run `pnpm build` without a base path. Publish the complete contents of `out/`, including `.nojekyll`.
